@@ -1,0 +1,41 @@
+services:
+  postgre:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    networks:
+      - kubenews-net
+    ports:
+      - "5432:5432"
+    volumes:
+      - kubenews-vol:/var/lib/postgresql/data
+
+  kubenews:
+    image: fiorindiluiz/kubenews:${VERSION}
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+
+    networks:
+      - kubenews-net
+    depends_on:
+      - postgre
+    environment:
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: postgre
+
+volumes:
+  kubenews-vol:
+    name: kubenews-vol
+    external: true
+
+networks:
+  kubenews-net:
+    name: kubenews-net
+    driver: bridge
